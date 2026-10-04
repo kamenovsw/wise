@@ -1,98 +1,147 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Notifications from "expo-notifications";
+import { useEffect, useState } from "react";
+import {
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
+export default function Home() {
+  const [nome, setNome] = useState("pedro aveleira");
+  const [valor, setValor] = useState("40");
+
+  useEffect(() => {
+    async function configurar() {
+      await Notifications.requestPermissionsAsync();
+    }
+
+    configurar();
+  }, []);
+
+  async function gerarNotificacao() {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Você acabou de receber dinheiro",
+        body: `${nome} enviou ${valor} EUR. O valor já está na sua conta e pronto para usar.`,
+        sound: true,
+      },
+      trigger: null,
+    });
   }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.logo}>WISE DEMO</Text>
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+      <TextInput
+        style={styles.input}
+        placeholder="Nome"
+        placeholderTextColor="#888"
+        value={nome}
+        onChangeText={setNome}
+      />
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      <TextInput
+        style={styles.input}
+        placeholder="Valor"
+        placeholderTextColor="#888"
+        value={valor}
+        onChangeText={setValor}
+        keyboardType="numeric"
+      />
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={gerarNotificacao}
+      >
+        <Text style={styles.buttonText}>
+          GERAR NOTIFICAÇÃO
+        </Text>
+      </TouchableOpacity>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      <View style={styles.preview}>
+        <Text style={styles.previewTitle}>
+          Você acabou de receber dinheiro
+        </Text>
+
+        <Text style={styles.previewText}>
+          {nome} enviou {valor} EUR. O valor já está na sua conta e pronto para
+          usar.
+        </Text>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    backgroundColor: "#000",
+    padding: 20,
+    justifyContent: "center",
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+
+  logo: {
+    color: "#6CFF45",
+    fontSize: 30,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 25,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+
+  input: {
+    backgroundColor: "#111",
+    color: "#fff",
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 12,
+    fontSize: 16,
   },
-  title: {
-    textAlign: 'center',
+
+  button: {
+    backgroundColor: "#6CFF45",
+    height: 55,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
   },
-  code: {
-    textTransform: 'uppercase',
+
+  buttonText: {
+    color: "#000",
+    fontSize: 16,
+    fontWeight: "bold",
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+
+  preview: {
+    backgroundColor: "#151515",
+    borderRadius: 20,
+    padding: 18,
+    marginTop: 25,
+  },
+
+  previewTitle: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+
+  previewText: {
+    color: "#ddd",
+    fontSize: 18,
+    lineHeight: 26,
   },
 });
